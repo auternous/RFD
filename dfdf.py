@@ -3,27 +3,27 @@ from pygame.locals import *
 
 
 def start_level_1(screen):
-    tile_width = 130
-    tile_height = 150
+
 
     def load_image(name, colorkey=None):
         fullname = os.path.join('data', name)
         try:
-            image = pygame.image.load(fullname).convert_alpha()
+             return pygame.image.load(fullname).convert_alpha()
 
-
-
-            return image
         except pygame.error as message:
             print('Cannot load image:', name)
             raise SystemExit(message)
 
     class Tile(pygame.sprite.Sprite):
-        def __init__(self, tile_type, pos_x, pos_y):
+        image = pygame.transform.scale(load_image('box.png'),
+                                              (int(screen.get_width() // 15), int(screen.get_height() // 7 )))
+        tile_width = int(screen.get_width() // 9)
+        tile_height = int(screen.get_height() // 6.5)
+        def __init__(self, pos_x, pos_y):
             super().__init__(tiles_group, all_sprites)
-            self.image = tile_images[tile_type]
+            self.image = Tile.image
             self.rect = self.image.get_rect().move(
-                tile_width * pos_x, tile_height * pos_y)
+                Tile.tile_width * pos_x, Tile.tile_height * pos_y)
             self.mask = pygame.mask.from_surface(self.image)
 
         def update(self):
@@ -32,16 +32,16 @@ def start_level_1(screen):
                 player.jump = False
 
     class Player(pygame.sprite.Sprite):
-        player_image = load_image('player_1.png')
-
+        image = pygame.transform.scale(load_image('player_1.png'),
+                                       (int(screen.get_width() // 10), int(screen.get_height() // 3)))
         def __init__(self, pos_x, pos_y):
             super().__init__(player_group, all_sprites)
-            self.image = Player.player_image
+            self.image = Player.image
             self.rect = self.image.get_rect().move(pos_x, pos_y)
             self.mask = pygame.mask.from_surface(self.image)
-            self.speed = 10
+            self.speed = screen.get_width()// 128
             self.jump = False
-            self.jump_Count = 10
+            self.jump_Count = screen.get_width()// 192
 
         def update(self):
             self.rect.x += self.speed
@@ -52,13 +52,13 @@ def start_level_1(screen):
             if level[x] == '.':
                 pass
             elif level[x] == '#':
-                Tile('wall', x, 5)
+                Tile( x, 5)
         # вернем игрока, а также размер поля в клетках
         return x, y
 
     class BackGround(pygame.sprite.Sprite):
-        backgrounds = load_image('screen_2.jpg')
-
+        backgrounds = pygame.transform.scale(load_image('screen.jpg'),
+                               (int(screen.get_width() / 1.4), int(screen.get_height() / 1.4)))
         def __init__(self):
             super().__init__(background_sprites, all_sprites)
             self.image = BackGround.backgrounds
@@ -114,16 +114,16 @@ def start_level_1(screen):
             if pygame.key.get_pressed()[pygame.K_SPACE]:
                 player.jump = True
         else:
-            if player.jump_Count >= -10:
+            if player.jump_Count >= -(screen.get_width()// 192):
                 if player.jump_Count < 0:
                     player.rect.y += (player.jump_Count ** 2)
                 else:
                     player.rect.y -= (player.jump_Count ** 2)
                 player.jump_Count -= 1
             else:
-                player.jump_Count = 10
+                player.jump_Count = (screen.get_width()// 192)
                 player.jump = False
-
+        screen.fill((0,0,0))
         player.update()
         camera.update(player)
         for i in all_sprites:
@@ -138,10 +138,9 @@ def start_level_1(screen):
 
 def main():
     pygame.init()
-    size = user_x, user_y = 1920, 1080
+    size = user_x, user_y = 1366, 768
 
     screen = pygame.display.set_mode((user_x, user_y), RESIZABLE)
     start_level_1(screen)
-
 
 main()

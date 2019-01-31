@@ -55,7 +55,7 @@ def start_level_1(screen, surface):
         return x, y
 
     class BackGround(pygame.sprite.Sprite):
-        backgrounds = load_image('screen_2.jpg')
+        backgrounds = load_image('screen.jpg')
 
         def __init__(self):
             super().__init__(background_sprites, all_sprites)
@@ -132,7 +132,7 @@ def start_level_1(screen, surface):
             camera.apply(i)
             if i in tiles_group:
                 i.update()
-
+        screen.fill((0,255,0))
         all_sprites.draw(surface)
         screen.blit(pygame.transform.scale(surface, (screen.get_width(), screen.get_height())), (0, 0))
         pygame.display.flip()
@@ -140,7 +140,7 @@ def start_level_1(screen, surface):
 
 def main():
     pygame.init()
-    size = user_x, user_y = 1920, 1080
+    size = user_x, user_y = 800, 600
 
     screen = pygame.display.set_mode((user_x, user_y), HWSURFACE | DOUBLEBUF | RESIZABLE)
     surface = pygame.Surface((1920, 1080))
