@@ -2,17 +2,24 @@ import pygame, os, random, sys
 from pygame.locals import *
 
 
-def start_level_1(screen):
+def load_level(filename):
+    filename = "data/" + filename
+    with open(filename, 'r') as mapFile:
+        level_map = [line.strip() for line in mapFile]
+    return level_map[0]
+
+def load_image(name, colorkey=None):
+    fullname = os.path.join('data', name)
+    try:
+            return pygame.image.load(fullname).convert_alpha()
+
+    except pygame.error as message:
+        print('Cannot load image:', name)
+        raise SystemExit(message)
 
 
-    def load_image(name, colorkey=None):
-        fullname = os.path.join('data', name)
-        try:
-             return pygame.image.load(fullname).convert_alpha()
+def Start_level(screen, level_num):
 
-        except pygame.error as message:
-            print('Cannot load image:', name)
-            raise SystemExit(message)
 
     class Tile(pygame.sprite.Sprite):
         image = pygame.transform.scale(load_image('box.png'),
@@ -110,6 +117,9 @@ def start_level_1(screen):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    pass
         if not (player.jump):
             if pygame.key.get_pressed()[pygame.K_SPACE]:
                 player.jump = True
@@ -139,8 +149,69 @@ def start_level_1(screen):
 def main():
     pygame.init()
     size = user_x, user_y = 1366, 768
-
     screen = pygame.display.set_mode((user_x, user_y), RESIZABLE)
-    start_level_1(screen)
 
+    class  Main_menu(pygame.sprite.Sprite):
+        backgrounds = pygame.transform.scale(load_image('Комната.png'),
+                                             (1366, 768))
+
+        def __init__(self):
+            super().__init__(menu,all_sprites)
+            self.image = Main_menu.backgrounds
+            self.rect = self.image.get_rect()
+
+
+
+
+    class Button(pygame.sprite.Sprite):
+        def __init__(self, filename, pos):
+            super().__init__(button,all_sprites)
+            self.filename = filename
+            self.button = load_image(filename+".png")
+
+            self.button_true = load_image(filename+"_True.png")
+
+            self.image = self.button
+            self.rect = self.image.get_rect().move(pos)
+
+        def update(self, pos):
+            if self.rect.collidepoint(event.pos):
+                self.image = self.button_true
+            else:
+                self.image = self.button
+
+        def apply(self, pos):
+            if self.rect.collidepoint(event.pos):
+                return self.filename
+
+
+    all_sprites = pygame.sprite.Group()
+    menu = pygame.sprite.Group()
+    button = pygame.sprite.Group()
+    main_menu = Main_menu()
+    play = Button('Play',(screen.get_rect().centerx, 100))
+    settings = Button('Settings', (screen.get_rect().centerx, 150))
+    quit = Button('Quit', (screen.get_rect().centerx, 200))
+    running = True
+
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            if event.type == pygame.MOUSEMOTION:
+                for i in button:
+                    i.update(event.pos)
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    for i in button:
+                        if i.apply(event.pos) == 'Play':
+                            Start_level(screen, 1)
+                        elif i.apply(event.pos) == 'Settings':
+                            start
+                        elif i.apply(event.pos) == 'Quit':
+                            running = False
+                            sys.exit()
+        all_sprites.draw(screen)
+
+        pygame.display.flip()
 main()
