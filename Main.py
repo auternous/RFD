@@ -90,7 +90,7 @@ def start_settings(screen, size, info):
 
 def start_level(screen, level_num):
     class Box(pygame.sprite.Sprite):
-        image = pygame.transform.scale(load_image('box.png'),
+        image = pygame.transform.scale(load_image('Мусорный бак.png'),
                                        (int(screen.get_width() // 15), int(screen.get_height() // 7)))
         tile_width = int(screen.get_width() // 9)
         tile_height = int(screen.get_height() // 6.5)
@@ -104,26 +104,42 @@ def start_level(screen, level_num):
 
         def update(self):
             if pygame.sprite.collide_mask(self, player):
-                player.speed = 0
+                player.run_mode = False
                 player.jump = False
 
     class Player(pygame.sprite.Sprite):
-        image = pygame.transform.scale(load_image('player_1.png'),
-                                       (int(screen.get_width() // 10), int(screen.get_height() // 3)))
+        image = load_image('person/player_stop.png')
+        images_run = [load_image('person/run_animation/run_1.png'), load_image('person/run_animation/run_2.png'),
+                      load_image('person/run_animation/run_3.png'),
+                      load_image('person/run_animation/run_4.png')]
+
 
         def __init__(self, pos_x, pos_y):
             super().__init__(player_group, all_sprites)
+            self.animCount = 0
             self.image = Player.image
             self.rect = self.image.get_rect().move(pos_x, pos_y)
             self.mask = pygame.mask.from_surface(self.image)
+            self.walk_mode = True
+            self.run_mode = False
             self.speed = screen.get_width() // 128
             self.jump = False
             self.jump_Count = screen.get_width() // 192
 
         def update(self):
-            self.rect.x += self.speed
-
-            if not (player.jump):
+            if self.run_mode:
+                self.rect.x += self.speed
+            if self.animCount + 1>= 60:
+                self.animCount = 0
+            if self.run_mode and not self.jump:
+                self.image = Player.images_run[int(self.animCount % 4)]
+                self.animCount += 1
+            if player.walk_mode:
+                if pygame.key.get_pressed()[pygame.K_LEFT]:
+                    player.rect.x -= 5
+                if pygame.key.get_pressed()[pygame.K_RIGHT]:
+                    player.rect.x += 5
+            if not self.jump:
                 if pygame.key.get_pressed()[pygame.K_SPACE]:
                     player.jump = True
             else:
@@ -155,17 +171,18 @@ def start_level(screen, level_num):
         def apply(self, obj):
             if obj.rect.x < -obj.rect[2] and obj in tiles_group:
                 all_sprites.remove(obj)
-            elif obj in background_sprites and player.speed != 0:
-                obj.rect.x += self.dx
+            elif obj in background_sprites and player.run_mode:
+                obj.rect.x += self.dx + 10
 
             else:
                 obj.rect.x += self.dx
                 obj.rect.y += self.dy
 
         def update(self, target):
+
             self.dx = -(target.rect.x - target.rect.w)
 
-    level = load_level('level_name1.txt')
+    level = load_level('levels/level_name{}.txt'.format(str(level_num)))
 
     background_sprites = pygame.sprite.Group()
     all_sprites = pygame.sprite.Group()
@@ -179,15 +196,17 @@ def start_level(screen, level_num):
     generate_level(level)
 
     running = True
-    fps = 120
+    fps = 60
     while running:
         clock.tick(fps)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+                sys.exit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     pass
+
 
         screen.fill((255, 255, 255))
         player.update()
@@ -255,7 +274,7 @@ def main():
                 elif event.key == 13:
                     for i in button_list:
                         if i.num == 1 and i.flag:
-                            start_level()
+                            start_level(screen, 1)
                         elif i.num == 2 and i.flag:
                             start_settings(screen, size, info)
                             with open('Settings.json', 'w', encoding='utf-8') as f_obj:
@@ -266,7 +285,7 @@ def main():
         for i in button_list:
             i.update()
         all_sprites.draw(screen2)
-        screen2 = pygame.transform.scale(screen2, (800, 600))
+        screen2 = pygame.transform.scale(screen2, (user_x, user_y))
         screen.blit(screen2, (0, 0))
         pygame.display.flip()
 

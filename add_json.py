@@ -1,6 +1,6 @@
 import json
 
-text = {'settings': {'scr_res': (800, 600), 'volume': 0.25,
+text = {'settings': {'scr_res': (1920, 1080), 'volume': 0.25,
                      'fullscreen': False},
         'screen_resolution':
             {"1920_1080":
