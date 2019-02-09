@@ -1,8 +1,56 @@
-import pygame, os, random, sys, json
+import pygame, os, random, sys, json, time
 from pygame.locals import *
 from pygame import mixer
 from execution import *
 from load_functions import *
+
+
+def start_pause(screen):
+    sound_tap = load_sound_tap()
+    all_sprites_pause = pygame.sprite.Group()
+    background_sprites_pause = pygame.sprite.Group()
+    button = pygame.sprite.Group()
+    button_list = []
+    num_button = 0
+
+    background = BackGround('Pause/pause_settings.png',
+                            [background_sprites_pause, all_sprites_pause], screen)
+    continue_ = Button('Pause/continue', (1920 // 2.8, 150), [button, all_sprites_pause], 1, True)
+    main_menu = Button('Pause/main_menu', (1920 // 3.4, 500), [button, all_sprites_pause], 2)
+
+    for i in [continue_, main_menu]:
+        button_list.append(i)
+
+    running_pause = True
+
+    while running_pause:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP:
+                    sound_tap.play()
+                    button_list[num_button % 2].apply()
+                    num_button -= 1
+                    button_list[num_button % 2].apply()
+                elif event.key == pygame.K_DOWN:
+                    sound_tap.play()
+                    button_list[num_button % 2].apply()
+                    num_button += 1
+                    button_list[num_button % 2].apply()
+                elif event.key == 13:
+                    sound_tap.play()
+                    for i in button_list:
+                        if i.num == 1 and i.flag:
+                            return True
+                        if i.num == 2 and i.flag:
+                            running_pause = False
+                            return False
+
+        for i in button_list:
+            i.update()
+        all_sprites_pause.draw(screen)
+        pygame.display.flip()
 
 
 def start_settings(screen, size, info):
@@ -11,7 +59,7 @@ def start_settings(screen, size, info):
     button_list = []
     num_button = 0
     full_screen_flag = info['settings']['fullscreen']
-    sound_tap = mixer.Sound('data/sounds/sound_tap.wav')
+    sound_tap = load_sound_tap()
     settings_menu = BackGround("Settings/pause_settings.png", [all_sprites], screen)
 
     ok = Button('settings/ok', (1920 // 3, 780), [button, all_sprites], 1)
@@ -40,23 +88,26 @@ def start_settings(screen, size, info):
     running = True
 
     while running:
-        screen2 = pygame.Surface((1920, 1080))
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
                 sys.exit()
 
             if event.type == pygame.KEYDOWN:
-                sound_tap.play()
+
                 if event.key == pygame.K_UP:
+                    sound_tap.play()
                     button_list[num_button % 5].apply()
                     num_button -= 1
                     button_list[num_button % 5].apply()
                 elif event.key == pygame.K_DOWN:
+                    sound_tap.play()
                     button_list[num_button % 5].apply()
                     num_button += 1
                     button_list[num_button % 5].apply()
                 elif event.key == 13:
+                    sound_tap.play()
                     for i in button_list:
                         if i.num == 1 and i.flag:
                             info['settings']['fullscreen'] = full_screen_flag
@@ -81,9 +132,7 @@ def start_settings(screen, size, info):
                             i.change()
         for i in button_list:
             i.update()
-        all_sprites.draw(screen2)
-        screen2 = pygame.transform.scale(screen2, (int(screen.get_width()), int(screen.get_height())))
-        screen.blit(screen2, (0, 0))
+        all_sprites.draw(screen)
 
         pygame.display.flip()
 
@@ -98,21 +147,23 @@ def start_level(screen, level_num):
         def __init__(self, pos_x, pos_y):
             super().__init__(tiles_group, all_sprites)
             self.image = Box.image
+
             self.rect = self.image.get_rect().move(
-                Box.tile_width * pos_x, Box.tile_height * pos_y)
+                Box.tile_width * pos_x, Box.tile_height * pos_y + 8)
             self.mask = pygame.mask.from_surface(self.image)
+            print(self.rect)
 
         def update(self):
             if pygame.sprite.collide_mask(self, player):
                 player.run_mode = False
                 player.jump = False
+                player.walk_mode = False
 
     class Player(pygame.sprite.Sprite):
         image = load_image('person/player_stop.png')
         images_run = [load_image('person/run_animation/run_1.png'), load_image('person/run_animation/run_2.png'),
                       load_image('person/run_animation/run_3.png'),
                       load_image('person/run_animation/run_4.png')]
-
 
         def __init__(self, pos_x, pos_y):
             super().__init__(player_group, all_sprites)
@@ -122,27 +173,30 @@ def start_level(screen, level_num):
             self.mask = pygame.mask.from_surface(self.image)
             self.walk_mode = True
             self.run_mode = False
-            self.speed = screen.get_width() // 128
+            self.speed = 15
             self.jump = False
             self.jump_Count = screen.get_width() // 192
 
         def update(self):
-            if self.run_mode:
-                self.rect.x += self.speed
-            if self.animCount + 1>= 60:
+
+            if self.animCount + 1 >= 60:
                 self.animCount = 0
+
             if self.run_mode and not self.jump:
                 self.image = Player.images_run[int(self.animCount % 4)]
                 self.animCount += 1
-            if player.walk_mode:
-                if pygame.key.get_pressed()[pygame.K_LEFT]:
-                    player.rect.x -= 5
-                if pygame.key.get_pressed()[pygame.K_RIGHT]:
-                    player.rect.x += 5
-            if not self.jump:
-                if pygame.key.get_pressed()[pygame.K_SPACE]:
-                    player.jump = True
-            else:
+
+            if self.walk_mode:
+                self.rect.x += self.speed - 10
+
+            if self.run_mode:
+                self.rect.x += self.speed
+
+            if not self.jump and not self.walk_mode:
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        player.jump = True
+            elif self.jump:
                 if player.jump_Count >= -(screen.get_width() // 192):
                     if player.jump_Count < 0:
                         player.rect.y += (player.jump_Count ** 2)
@@ -153,13 +207,28 @@ def start_level(screen, level_num):
                     player.jump_Count = (screen.get_width() // 192)
                     player.jump = False
 
+    class Enemy(pygame.sprite.Sprite):
+        image = load_image('person/player_stop.png')
+
+        def __init__(self, pos_x, pos_y):
+            super().__init__(enemy_group, all_sprites)
+            self.animCount = 0
+            self.image = Enemy.image
+            self.rect = self.image.get_rect().move(pos_x, pos_y)
+            self.mask = pygame.mask.from_surface(self.image)
+            self.run_mode = False
+
+        def update(self):
+            if pygame.sprite.collide_mask(self, player):
+                self.run_mode = False
+
     def generate_level(level):
         new_player, x, y = None, None, None
         for x in range(len(level)):
             if level[x] == '.':
                 pass
             elif level[x] == '#':
-                Box(x, 5)
+                Box(x, 4.6)
         # вернем игрока, а также размер поля в клетках
         return x, y
 
@@ -171,16 +240,26 @@ def start_level(screen, level_num):
         def apply(self, obj):
             if obj.rect.x < -obj.rect[2] and obj in tiles_group:
                 all_sprites.remove(obj)
+
+
             elif obj in background_sprites and player.run_mode:
                 obj.rect.x += self.dx + 10
+
+            elif obj in enemy_group and enemy.run_mode:
+                if player.run_mode:
+                    obj.rect.x += random.randint(-6, 6)
+
+                else:
+                    obj.rect.x += 10
 
             else:
                 obj.rect.x += self.dx
                 obj.rect.y += self.dy
 
         def update(self, target):
-
             self.dx = -(target.rect.x - target.rect.w)
+
+    Paper(screen)
 
     level = load_level('levels/level_name{}.txt'.format(str(level_num)))
 
@@ -188,16 +267,23 @@ def start_level(screen, level_num):
     all_sprites = pygame.sprite.Group()
     player_group = pygame.sprite.Group()
     tiles_group = pygame.sprite.Group()
+    enemy_group = pygame.sprite.Group()
 
     camera = Camera()
     background = BackGround('screen.jpg', [background_sprites, all_sprites], screen)
     player = Player(screen.get_width() // 4, screen.get_height() // 1.8)
+    enemy = Enemy(screen.get_width(), screen.get_height() // 1.8)
     clock = pygame.time.Clock()
     generate_level(level)
 
     running = True
     fps = 60
+    START_RUN = 24
+    start_run_flag = True
+    pygame.time.set_timer(START_RUN, 5000)
+
     while running:
+
         clock.tick(fps)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -205,18 +291,44 @@ def start_level(screen, level_num):
                 sys.exit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    pass
+                    running = start_pause(screen)
+            if event.type == START_RUN and start_run_flag:
+                def start_run(screen):
 
+                    enemy.rect.x = -enemy.rect.w
+                    print(enemy.rect.x)
+                    while True:
+                        for event in pygame.event.get():
+                            if event.type == pygame.QUIT:
+                                sys.exit()
+
+                        enemy.rect.x += 70
+                        enemy_group.draw(screen)
+                        time.sleep(1)
+                        pygame.display.flip()
+                        if enemy.rect.x >= 0:
+                            return False
+
+                start_run_flag = start_run(screen)
+
+                player.run_mode = True
+                player.walk_mode = False
+                enemy.rect.x = 0
+                enemy.run_mode = True
 
         screen.fill((255, 255, 255))
         player.update()
         camera.update(player)
         for i in all_sprites:
             camera.apply(i)
-            if i in tiles_group:
+            if i in tiles_group or i in enemy_group:
                 i.update()
 
-        all_sprites.draw(screen)
+        background_sprites.draw(screen)
+        player_group.draw(screen)
+        tiles_group.draw(screen)
+        if enemy.run_mode:
+            enemy_group.draw(screen)
 
         pygame.display.flip()
 
@@ -232,9 +344,7 @@ def main():
     mixer.music.load('data/sounds/music.mp3')
     mixer.music.set_volume(info['settings']['volume'])
     mixer.music.play(-1)
-    sound_tap = mixer.Sound('data/sounds/sound_tap.wav')
-    sound_tap.set_volume(0.2)
-
+    sound_tap = load_sound_tap()
 
     size = user_x, user_y = info['settings']["scr_res"]
     screen = pygame.display.set_mode((user_x, user_y), RESIZABLE)
@@ -256,22 +366,25 @@ def main():
         button_list.append(i)
     running = True
     while running:
-        screen2 = pygame.Surface((1920, 1080))
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
 
             if event.type == pygame.KEYDOWN:
-                sound_tap.play()
+
                 if event.key == pygame.K_UP:
+                    sound_tap.play()
                     button_list[num_button % 3].apply()
                     num_button -= 1
                     button_list[num_button % 3].apply()
                 elif event.key == pygame.K_DOWN:
+                    sound_tap.play()
                     button_list[num_button % 3].apply()
                     num_button += 1
                     button_list[num_button % 3].apply()
                 elif event.key == 13:
+                    sound_tap.play()
                     for i in button_list:
                         if i.num == 1 and i.flag:
                             start_level(screen, 1)
@@ -284,9 +397,8 @@ def main():
                             sys.exit()
         for i in button_list:
             i.update()
-        all_sprites.draw(screen2)
-        screen2 = pygame.transform.scale(screen2, (user_x, user_y))
-        screen.blit(screen2, (0, 0))
+        all_sprites.draw(screen)
+
         pygame.display.flip()
 
 
