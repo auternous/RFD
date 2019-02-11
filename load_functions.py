@@ -34,9 +34,13 @@ def load_sound_tap():
     sound_tap.set_volume(0.2)
     return sound_tap
 
+def load_music(info):
+    pygame.mixer.music.load('data/sounds/Menu.mp3')
+    pygame.mixer.music.set_volume(info['settings']['volume'])
+    pygame.mixer.music.play(-1)
 
 def Paper(screen):
-    image = load_image("Мусорный бак.png")
+    image = load_image("Level_1/Starting.png")
 
     screen.blit(image, (0, 0))
     running = True
@@ -47,7 +51,6 @@ def Paper(screen):
                 running = False
                 sys.exit()
             if event.type == pygame.KEYDOWN:
-                if event.key == 13:
-                    running = False
+                running = False
 
         pygame.display.flip()
