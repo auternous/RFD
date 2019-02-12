@@ -136,14 +136,12 @@ def start_settings(screen, size, info):
         pygame.display.flip()
 
 
-def start_level(screen, level_num):
+def start_level(screen, level_num, info):
     class Box(pygame.sprite.Sprite):
-        image_list = [pygame.transform.scale(load_image('Level_1/Block_1.png'),
-                                             (int(screen.get_width() // 15), int(screen.get_height() // 7))),
-                      pygame.transform.scale(load_image('Level_1/Block_2.png'),
-                                             (int(screen.get_width() // 15), int(screen.get_height() // 7))),
-                      pygame.transform.scale(load_image('Level_1/Block_3.png'),
-                                             (int(screen.get_width() // 15), int(screen.get_height() // 7)))]
+        image_list = [load_image('Level_1/Block_1.png'),
+                      load_image('Level_1/Block_2.png'),
+                      load_image('Level_1/Block_3.png')]
+
         tile_width = int(screen.get_width() // 9)
         tile_height = int(screen.get_height() // 6.5)
 
@@ -161,13 +159,12 @@ def start_level(screen, level_num):
                 player.jump = False
                 player.walk_mode = False
 
-    # class Out(pygame.sprite.Sprite):
-    #     image = load_image('')
     class Player(pygame.sprite.Sprite):
         image = load_image('person/player_stop.png')
-        images_run = [load_image('person/run_animation/run_1.png'), load_image('person/run_animation/run_2.png'),
-                      load_image('person/run_animation/run_3.png'),
-                      load_image('person/run_animation/run_4.png')]
+        images_run = []
+        images_walk = [load_image('person/run_animation/run_1.png'), load_image('person/run_animation/run_3.png')]
+        for i in range(1, 9):
+            images_run.append(load_image('person/run_animation/run_{}.png'.format(i)))
 
         def __init__(self, pos_x, pos_y):
             super().__init__(player_group, all_sprites)
@@ -188,11 +185,14 @@ def start_level(screen, level_num):
                 self.animCount = 0
 
             if self.run_mode and not self.jump:
-                self.image = Player.images_run[int(self.animCount % 4)]
+                self.image = Player.images_run[int(self.animCount % 8)]
                 self.animCount += 1
 
             if self.walk_mode:
                 self.rect.x += self.speed - 10
+                self.animCount += 1
+                if self.animCount % 5 == 0:
+                    self.image = Player.images_walk[int(self.animCount % 2)]
 
             if self.run_mode:
                 self.rect.x += self.speed
@@ -231,6 +231,7 @@ def start_level(screen, level_num):
 
             if pygame.sprite.collide_mask(self, player):
                 self.run_mode = False
+                player.run_mode = False
 
     def generate_level(level):
         new_player, x, y = None, None, None
@@ -239,7 +240,6 @@ def start_level(screen, level_num):
                 pass
             elif level[x] == '#':
                 Box(x, 4.6)
-        # вернем игрока, а также размер поля в клетках
         return x, y
 
     class Camera:
@@ -262,7 +262,7 @@ def start_level(screen, level_num):
                     else:
                         obj.rect.x += random.randint(0, 6)
 
-                    if obj.rect.y - 30> screen.get_height() // 3.5:
+                    if obj.rect.y - 30 > screen.get_height() // 3.5:
                         obj.rect.y += random.randint(-6, 0)
                     else:
                         obj.rect.y += random.randint(0, 6)
@@ -309,7 +309,9 @@ def start_level(screen, level_num):
                 sys.exit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
+                    load_music(info)
                     running = start_pause(screen)
+                    mixer.music.stop()
 
             if event.type == START_RUN and start_run_flag:
 
@@ -325,7 +327,7 @@ def start_level(screen, level_num):
                             if event.type == pygame.QUIT:
                                 sys.exit()
 
-                        enemy.rect.x += 70
+                        enemy.rect.x += 130
                         screen.blit(screen2, (0, 0))
                         enemy_group.draw(screen)
                         time.sleep(1)
@@ -353,6 +355,8 @@ def start_level(screen, level_num):
         tiles_group.draw(screen)
         if enemy.run_mode:
             enemy_group.draw(screen)
+        if not player.run_mode and not player.walk_mode:
+            running = start_dead_win_scene(screen)
 
         pygame.display.flip()
 
@@ -414,14 +418,12 @@ def main():
                     for i in button_list:
                         if i.num == 1 and i.flag:
                             mixer.music.stop()
-                            start_level(screen, 1)
+                            start_level(screen, 1, info)
                             load_music(info)
                         elif i.num == 2 and i.flag:
-                            mixer.music.stop()
                             start_settings(screen, size, info)
                             with open('Settings.json', 'w', encoding='utf-8') as f_obj:
                                 json.dump(info, f_obj, ensure_ascii=False)
-                            load_music(info)
                         elif i.num == 3 and i.flag:
                             running = False
                             sys.exit()
