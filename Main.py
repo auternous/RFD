@@ -6,42 +6,43 @@ from load_functions import *
 
 
 def start_pause(screen):
-    sound_tap = load_sound_tap()
+    sound_tap = load_sound('data/sounds/sound_tap.wav')  # включение фоновой музыки
     all_sprites_pause = pygame.sprite.Group()
     background_sprites_pause = pygame.sprite.Group()
     button = pygame.sprite.Group()
-    button_list = []
-    num_button = 0
+    button_list = []  # список кнопок
+    num_button = 0  # номер кнопки
 
     background = BackGround('Pause/pause_settings.png',
                             [background_sprites_pause, all_sprites_pause], screen)
     continue_ = Button('Pause/continue', (1920 // 2.8, 150), [button, all_sprites_pause], 1, True)
     main_menu = Button('Pause/main_menu', (1920 // 3.4, 500), [button, all_sprites_pause], 2)
+    # определяем кнопки и фон
 
     for i in [continue_, main_menu]:
-        button_list.append(i)
+        button_list.append(i)  # добавляем кнопки в список
 
     running_pause = True
 
     while running_pause:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                sys.exit()
+                sys.exit()  # выход
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP:
                     sound_tap.play()
                     button_list[num_button % 2].apply()
                     num_button -= 1
-                    button_list[num_button % 2].apply()
+                    button_list[num_button % 2].apply()  # обрабатываем нажатие кнопки "up"
                 elif event.key == pygame.K_DOWN:
                     sound_tap.play()
                     button_list[num_button % 2].apply()
                     num_button += 1
-                    button_list[num_button % 2].apply()
+                    button_list[num_button % 2].apply()  # обрабатываем нажатие кнопки "down"
                 elif event.key == 13:
                     sound_tap.play()
                     for i in button_list:
-                        if i.num == 1 and i.flag:
+                        if i.num == 1 and i.flag:  # обрабатываем нажатие кнопки "enter"
                             return True
                         if i.num == 2 and i.flag:
                             running_pause = False
@@ -59,9 +60,10 @@ def start_settings(screen, size, info):
     button_list = []
     num_button = 0
     full_screen_flag = info['settings']['fullscreen']
-    sound_tap = load_sound_tap()
-    settings_menu = BackGround("Settings/pause_settings.png", [all_sprites], screen)
 
+    sound_tap = load_sound('data/sounds/sound_tap.wav')
+
+    settings_menu = BackGround("Settings/pause_settings.png", [all_sprites], screen)
     ok = Button('settings/ok', (1920 // 3, 780), [button, all_sprites], 1)
     back = Button('settings/back', (1920 // 1.8, 780), [button, all_sprites], 2)
 
@@ -79,8 +81,9 @@ def start_settings(screen, size, info):
         volume = Button_Volume('settings/volume_3', (1920 // 2.9, 500), [button, all_sprites], 5, info)
     elif info['settings']['volume'] == 1:
         volume = Button_Volume('settings/volume_4', (1920 // 2.9, 500), [button, all_sprites], 5, info)
-    screen_resolution = Button('settings/screen_resolution_1920', (1920 // 4.3, 20), [button, all_sprites], 4, True)
-
+    screen_resolution = Button('settings/screen_resolution_1920', (1920 // 4.3, 20), [button, all_sprites], 4,
+                               True)  # эта кнопка ждёт фикса
+    # определяем нужные кнопки
     for i in [screen_resolution, full_screen, volume, ok, back]:
         button_list.append(i)
 
@@ -95,7 +98,7 @@ def start_settings(screen, size, info):
 
             if event.type == pygame.KEYDOWN:
 
-                if event.key == pygame.K_UP:
+                if event.key == pygame.K_UP:  # обрабатываем нажатие кнопок
                     sound_tap.play()
                     button_list[num_button % 5].apply()
                     num_button -= 1
@@ -112,7 +115,7 @@ def start_settings(screen, size, info):
                             info['settings']['fullscreen'] = full_screen_flag
                             info['settings']['volume'] = volume.dict_key[volume.filename]
                             mixer.music.set_volume(info['settings']['volume'])
-                            screen = update_settings(info, size)
+                            screen = update_settings(info, size)  # меняем настройки и сохраняем в переменной
                         elif i.num == 2 and i.flag:
                             running = False
                         elif i.num == 3 and i.flag:
@@ -172,12 +175,14 @@ def start_level(screen, level_num, info):
             self.image = Player.image
             self.rect = self.image.get_rect().move(pos_x, pos_y)
             self.mask = pygame.mask.from_surface(self.image)
-            self.walk_mode = True
-            self.run_mode = False
+            self.walk_mode = True  # ходьба
+            self.run_mode = False  # бег
             self.speed = 17
-            self.jump = False
-            self.jump_Count = screen.get_width() // 192
+            self.jump = False  # прыжок
+            self.jump_Count = screen.get_width() // 192  # граница прыжка
+            self.jump_mode = False  # можно ли осуществить прыжок
             self.n = 0
+            self.finish = False  # конец уровня
 
         def update(self):
 
@@ -197,9 +202,11 @@ def start_level(screen, level_num, info):
             if self.run_mode:
                 self.rect.x += self.speed
 
-            if not self.jump and not self.walk_mode:
-                if pygame.key.get_pressed()[K_SPACE]:
-                    player.jump = True
+            if self.jump_mode and not player.jump:
+
+                if event.type == KEYDOWN:
+                    if event.key == K_SPACE:
+                        player.jump = True
 
             elif self.jump:
                 if player.jump_Count >= -(screen.get_width() // 192):
@@ -251,10 +258,6 @@ def start_level(screen, level_num, info):
             if obj.rect.x < -obj.rect[2] and obj in tiles_group:
                 all_sprites.remove(obj)
 
-
-            elif obj in background_sprites and player.run_mode:
-                obj.rect.x += self.dx + 13
-
             elif obj in enemy_group and enemy.run_mode:
                 if player.run_mode:
                     if obj.rect.x + 6 > 0:
@@ -270,15 +273,26 @@ def start_level(screen, level_num, info):
                 else:
                     obj.rect.x += 10
 
+            elif obj in background_sprites:
+                if player.run_mode and obj.rect.x >= -13000:
+                    obj.rect.x += self.dx + 13
+                if obj.rect.x <= -12700:
+                    player.jump_mode = False
+                if obj.rect.x < -13000:
+                    player.finish = True
+
+                elif player.walk_mode:
+                    obj.rect.x += self.dx + 5
+
+
             else:
                 obj.rect.x += self.dx
-                obj.rect.y += self.dy
 
         def update(self, target):
             self.dx = -(target.rect.x - target.rect.w - 400)
 
     Paper(screen)
-
+    load_music(info, 'data/sounds/music_game.mp3')
     level = load_level('levels/level_name{}.txt'.format(str(level_num)))
 
     background_sprites = pygame.sprite.Group()
@@ -288,7 +302,7 @@ def start_level(screen, level_num, info):
     enemy_group = pygame.sprite.Group()
 
     camera = Camera()
-    background = BackGround('Level_1/Map.png', [background_sprites, all_sprites], screen)
+    background = BackGround('Level_1/Map2.png', [background_sprites, all_sprites], screen)
     player = Player(700, screen.get_height() // 1.8)
     enemy = Enemy(screen.get_width(), screen.get_height() // 3.2)
     clock = pygame.time.Clock()
@@ -296,9 +310,7 @@ def start_level(screen, level_num, info):
 
     running = True
     fps = 60
-    START_RUN = 24
     start_run_flag = True
-    pygame.time.set_timer(START_RUN, 5000)
 
     while running:
 
@@ -309,38 +321,63 @@ def start_level(screen, level_num, info):
                 sys.exit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    load_music(info)
+                    mixer.music.pause()
                     running = start_pause(screen)
-                    mixer.music.stop()
+                    mixer.music.unpause()
 
-            if event.type == START_RUN and start_run_flag:
+        if background.rect.x < -400 and start_run_flag:
 
-                def start_run(screen):
+            def start_run(screen):
 
-                    enemy.rect.x = -enemy.rect.w
-                    screen3 = pygame.Surface(screen.get_size())
-                    screen3.blit(screen, (0, 0))
-                    while True:
-                        screen2 = pygame.Surface(screen.get_size())
-                        screen2.blit(screen3, (0, 0))
-                        for event in pygame.event.get():
-                            if event.type == pygame.QUIT:
-                                sys.exit()
+                enemy.rect.x = -enemy.rect.w
+                screen3 = pygame.Surface(screen.get_size())
+                screen3.blit(screen, (0, 0))
+                while True:
+                    screen2 = pygame.Surface(screen.get_size())
+                    screen2.blit(screen3, (0, 0))
+                    for event in pygame.event.get():
+                        if event.type == pygame.QUIT:
+                            sys.exit()
 
-                        enemy.rect.x += 130
-                        screen.blit(screen2, (0, 0))
-                        enemy_group.draw(screen)
-                        time.sleep(1)
-                        pygame.display.flip()
-                        if enemy.rect.x >= 0:
-                            return False
+                    enemy.rect.x += 130
+                    screen.blit(screen2, (0, 0))
+                    enemy_group.draw(screen)
+                    time.sleep(1)
+                    pygame.display.flip()
+                    if enemy.rect.x >= 0:
+                        return False
 
-                start_run_flag = start_run(screen)
+            start_run_flag = start_run(screen)
 
-                player.run_mode = True
-                player.walk_mode = False
-                enemy.rect.x = 0
-                enemy.run_mode = True
+            player.run_mode = True
+            player.walk_mode = False
+            enemy.rect.x = 0
+            enemy.run_mode = True
+            player.jump_mode = True
+
+        if player.finish:
+            def start_end(screen):
+                background_sprites.draw(screen)
+                screen3 = pygame.Surface(screen.get_size())
+                screen3.blit(screen, (0, 0))
+                while True:
+
+                    for event in pygame.event.get():
+                        if event.type == pygame.QUIT:
+                            sys.exit()
+
+                    player.rect.x += 6
+                    player.update()
+                    screen.blit(screen3, (0, 0))
+                    player_group.draw(screen)
+                    enemy_group.draw(screen)
+                    pygame.display.flip()
+                    if player.rect.x > 1920:
+                        return False
+
+            start_end(screen)
+            mixer.music.stop()
+            running = start_dead_win_scene(screen, False)
 
         screen.fill((255, 255, 255))
         player.update()
@@ -349,32 +386,34 @@ def start_level(screen, level_num, info):
             camera.apply(i)
             if i in tiles_group or i in enemy_group:
                 i.update()
-
-        background_sprites.draw(screen)
-        player_group.draw(screen)
-        tiles_group.draw(screen)
+        if running:
+            background_sprites.draw(screen)
+            player_group.draw(screen)
+            tiles_group.draw(screen)
         if enemy.run_mode:
             enemy_group.draw(screen)
         if not player.run_mode and not player.walk_mode:
+            mixer.music.stop()
             running = start_dead_win_scene(screen)
 
         pygame.display.flip()
+    mixer.music.stop()
 
 
 def main():
     with open('Settings.json', 'r', encoding='utf-8') as f_obj:
-        info = json.load(f_obj)
+        info = json.load(f_obj)  # считываем настройки с json
 
     pygame.init()
     mixer.pre_init(44100, -16, 1, 512)
-    mixer.init()
+    mixer.init()  # инициализируем всякую дичь
 
-    load_music(info)
-    sound_tap = load_sound_tap()
+    load_music(info, 'data/sounds/Menu.mp3')  # включаем фонувую музыку
+    sound_tap = load_sound('data/sounds/sound_tap.wav')  # записываем в переменную звук нажатия
 
-    size = user_x, user_y = info['settings']["scr_res"]
+    size = user_x, user_y = info['settings']["scr_res"]  # считываем разрешение экрана
 
-    if info['settings']["fullscreen"]:
+    if info['settings']["fullscreen"]:  # проверяем не включен ли режим полного экрана
         screen = pygame.display.set_mode((user_x, user_y), FULLSCREEN)
     else:
         screen = pygame.display.set_mode((user_x, user_y), RESIZABLE)
@@ -383,14 +422,14 @@ def main():
     menu = pygame.sprite.Group()
     button = pygame.sprite.Group()
     button_list = []
+    num_button = 0
 
     backgroung = BackGround("main_menu/Комната.png", [menu, all_sprites], screen)
     play = Button('main_menu/play', (1920 // 2.8, 90), [button, all_sprites], 1, True)
     settings = Button('main_menu/settings', (1920 // 3.4, 360), [button, all_sprites], 2)
     quit = Button('main_menu/quit', (1920 // 2.9, 590), [button, all_sprites], 3)
     backgroung_dark = BackGround("main_menu/Затемнение.png", [menu, all_sprites], screen)
-
-    num_button = 0
+    # определяем кнопки и фон
 
     for i in [play, settings, quit]:
         button_list.append(i)
@@ -403,7 +442,7 @@ def main():
 
             if event.type == pygame.KEYDOWN:
 
-                if event.key == pygame.K_UP:
+                if event.key == pygame.K_UP:  # обрабатывам нажатие кнопок
                     sound_tap.play()
                     button_list[num_button % 3].apply()
                     num_button -= 1
@@ -418,12 +457,12 @@ def main():
                     for i in button_list:
                         if i.num == 1 and i.flag:
                             mixer.music.stop()
-                            start_level(screen, 1, info)
-                            load_music(info)
+                            start_level(screen, 1, info)  # cтартуем
+                            load_music(info, 'data/sounds/Menu.mp3')
                         elif i.num == 2 and i.flag:
-                            start_settings(screen, size, info)
+                            start_settings(screen, size, info)  # включаем настройки
                             with open('Settings.json', 'w', encoding='utf-8') as f_obj:
-                                json.dump(info, f_obj, ensure_ascii=False)
+                                json.dump(info, f_obj, ensure_ascii=False)  # записываем изменения в json
                         elif i.num == 3 and i.flag:
                             running = False
                             sys.exit()
@@ -434,4 +473,5 @@ def main():
         pygame.display.flip()
 
 
-main()
+if __name__ == "__main__":
+    main()

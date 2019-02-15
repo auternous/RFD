@@ -2,7 +2,7 @@ import pygame
 from load_functions import load_image
 
 
-class Button(pygame.sprite.Sprite):
+class Button(pygame.sprite.Sprite):  # класс обычной кнопки
     def __init__(self, filename, pos, groups, num, flag=False):
         super().__init__(groups)
         self.filename = filename
@@ -18,17 +18,17 @@ class Button(pygame.sprite.Sprite):
         if self.flag:
             self.image = self.button_true
         else:
-            self.image = self.button
+            self.image = self.button  # меняем изображение
 
     def apply(self):
         if self.flag:
             self.flag = False
         else:
-            self.flag = True
+            self.flag = True  # меняем значение переменной
 
     def image_change(self):
         self.button = load_image(self.filename + ".png")
-        self.button_true = load_image(self.filename + "_True.png")
+        self.button_true = load_image(self.filename + "_True.png")  # изменение кнопки при нажатии
 
 
 class BackGround(pygame.sprite.Sprite):
@@ -53,7 +53,7 @@ class Button_Fullscreen(Button):
 
         self.image = self.button
         self.rect = self.image.get_rect().move(pos)
-        self.flag = flag
+        self.flag = flag  # включен или выключен режим полного экрана
 
 
 class Button_Volume(Button):
@@ -72,7 +72,8 @@ class Button_Volume(Button):
                          'settings/volume_3', 'settings/volume_4']
         self.dict_key = {'settings/volume_0': 0, 'settings/volume_1': 0.25, 'settings/volume_2': 0.5,
                          'settings/volume_3': 0.75, 'settings/volume_4': 1}
+
     def change(self):
         self.filename = self.list_vol[(self.list_vol.index(self.filename) + 1) % 5]
         self.button = load_image(self.filename + ".png")
-        self.button_true = load_image(self.filename + "_True.png")
+        self.button_true = load_image(self.filename + "_True.png")  # изменение кнопки при нажатии

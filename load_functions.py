@@ -28,16 +28,17 @@ def update_settings(info, size):
     return screen
 
 
-def load_sound_tap():
-    sound_tap = pygame.mixer.Sound('data/sounds/sound_tap.wav')
+def load_sound(name):
+    sound_tap = pygame.mixer.Sound(name)
     sound_tap.set_volume(0.2)
     return sound_tap
 
 
-def load_music(info):
-    pygame.mixer.music.load('data/sounds/Menu.mp3')
+def load_music(info, name):
+    pygame.mixer.music.load(name)
     pygame.mixer.music.set_volume(info['settings']['volume'])
     pygame.mixer.music.play(-1)
+    return
 
 
 def Paper(screen):
@@ -63,13 +64,17 @@ def start_dead_win_scene(screen, dead=True):
         images_dead_list.append(load_image('Dead_Win/Dark_{}.png'.format(i)))
     if dead:
         images_dead_list.append(load_image('Dead_Win/Dead.png'))
+        sound = load_sound("data/sounds/Music_dead.wav")
     else:
         images_dead_list.append(load_image('Dead_Win/Level_passed.png'))
+        sound = load_sound("data/sounds/Music_complete.wav")
+
     animCount = 0
     fps = 5
     clock = pygame.time.Clock()
     screen3 = pygame.Surface(screen.get_size())
     screen3.blit(screen, (0, 0))
+    sound.play()
     while True:
         clock.tick(fps)
         screen2 = pygame.Surface(screen.get_size())
