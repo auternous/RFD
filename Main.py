@@ -208,7 +208,6 @@ def start_level(screen, level_num, info):
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_SPACE:
                         player.jump = True
-                        print(1)
 
             elif self.jump:
                 if player.jump_Count >= -(screen.get_width() // 192):
@@ -409,17 +408,17 @@ def main():
     pygame.init()
     mixer.pre_init(44100, -16, 1, 512)
     mixer.init()  # инициализируем всякую дичь
+    pygame.display.set_caption('RFD')
 
     load_music(info, 'data/sounds/Menu.mp3')  # включаем фонувую музыку
     sound_tap = load_sound('data/sounds/sound_tap.wav')  # записываем в переменную звук нажатия
-
     size = user_x, user_y = info['settings']["scr_res"]  # считываем разрешение экрана
 
     if info['settings']["fullscreen"]:  # проверяем не включен ли режим полного экрана
         screen = pygame.display.set_mode((user_x, user_y), FULLSCREEN)
     else:
         screen = pygame.display.set_mode((user_x, user_y), RESIZABLE)
-
+    pygame.display.set_icon(load_image('icon.png'))
     all_sprites = pygame.sprite.Group()
     menu = pygame.sprite.Group()
     button = pygame.sprite.Group()

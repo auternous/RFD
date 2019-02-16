@@ -1,1 +1,1 @@
-{"settings": {"scr_res": [1920, 1080], "volume": 0.25, "fullscreen": true}, "screen_resolution": {"1920_1080": {"objects": {"player": {"player_speed": 15}}}}}
+{"settings": {"scr_res": [1920, 1080], "volume": 0.25, "fullscreen": false}, "screen_resolution": {"1920_1080": {"objects": {"player": {"player_speed": 15}}}}}
