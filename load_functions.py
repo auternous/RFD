@@ -1,4 +1,4 @@
-import pygame, os, sys
+import pygame, os, sys, time
 from pygame.locals import *
 
 
@@ -75,6 +75,7 @@ def start_dead_win_scene(screen, dead=True):
     screen3 = pygame.Surface(screen.get_size())
     screen3.blit(screen, (0, 0))
     sound.play()
+    time.sleep(1)
     while True:
         clock.tick(fps)
         screen2 = pygame.Surface(screen.get_size())

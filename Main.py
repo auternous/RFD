@@ -1,5 +1,5 @@
-import pygame, os, random, sys, json, time
-from pygame.locals import *
+import json
+import random
 from pygame import mixer
 from execution import *
 from load_functions import *
@@ -143,7 +143,8 @@ def start_level(screen, level_num, info):
     class Box(pygame.sprite.Sprite):
         image_list = [load_image('Level_1/Block_1.png'),
                       load_image('Level_1/Block_2.png'),
-                      load_image('Level_1/Block_3.png')]
+                      load_image('Level_1/Block_3.png'),
+                      load_image('Level_1/Block_4.png')]
 
         tile_width = int(screen.get_width() // 9)
         tile_height = int(screen.get_height() // 6.5)
@@ -204,9 +205,10 @@ def start_level(screen, level_num, info):
 
             if self.jump_mode and not player.jump:
 
-                if event.type == KEYDOWN:
-                    if event.key == K_SPACE:
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
                         player.jump = True
+                        print(1)
 
             elif self.jump:
                 if player.jump_Count >= -(screen.get_width() // 192):
@@ -291,7 +293,7 @@ def start_level(screen, level_num, info):
         def update(self, target):
             self.dx = -(target.rect.x - target.rect.w - 400)
 
-    Paper(screen)
+    Paper(screen)  # заставка с газетой
     load_music(info, 'data/sounds/music_game.mp3')
     level = load_level('levels/level_name{}.txt'.format(str(level_num)))
 
@@ -377,7 +379,7 @@ def start_level(screen, level_num, info):
 
             start_end(screen)
             mixer.music.stop()
-            running = start_dead_win_scene(screen, False)
+            running = start_dead_win_scene(screen, False)  # мужик выйграл
 
         screen.fill((255, 255, 255))
         player.update()
@@ -394,7 +396,7 @@ def start_level(screen, level_num, info):
             enemy_group.draw(screen)
         if not player.run_mode and not player.walk_mode:
             mixer.music.stop()
-            running = start_dead_win_scene(screen)
+            running = start_dead_win_scene(screen)  # умер Мужык фамилия таджик
 
         pygame.display.flip()
     mixer.music.stop()
